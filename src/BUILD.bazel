@@ -1,0 +1,58 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl",
+     "cc_library",
+     # "cc_shared_library"
+     )
+
+# exports_files(["libgdbm_clibgen.scm"])
+
+load("@libs7//:BUILD.bzl", "BASE_COPTS")
+load("@libs7//lib:BUILD.bzl", "clibgen_runner")
+
+load("//:BUILD.bzl", "GDBM_VERSION", "GDBM_S7_VERSION", "LIBS7_VERSION")
+
+SRCS = [] # ["@libs7//src:s7.h"]
+INCLUDE_PATHS = [
+    "-Iexternal/libs7~{}/src".format(LIBS7_VERSION),
+    "-Iexternal/gdbm~{}/src".format(GDBM_VERSION),
+    # "-Iexternal/liblog_cc~{}/src".format(LIBLOG_CC_VERSION),
+    # when built within libs7 repo, this is needed:
+    # "-Isrc"
+]
+COPTS         = BASE_COPTS + INCLUDE_PATHS
+DEPS          = ["@libs7//src:s7", "@gdbm//:libgdbm"]
+# "@liblog_cc//src:logc",
+
+################################################################
+cc_library(
+    name            = "gdbm_s7",
+    linkstatic      = True,
+    alwayslink      = True, # ensure init fn sym available for dlsym
+    srcs            = SRCS + [
+        # ":libgdbm_s7_runbin"
+        "libgdbm_s7.c"
+    ],
+    deps            = DEPS,
+    copts           = COPTS,
+    # linkopts      = LINKOPTS,
+    # local_defines = DEFINES
+)
+
+cc_shared_library(
+    name            = "gdbm_s7_dso",  # create libgdbm_s7.{dylib,so}
+    shared_lib_name = select({
+        "@platforms//os:macos": "libgdbm_s7.dylib",
+        "@platforms//os:linux": "libgdbm_s7.so",
+        # "@platforms//os:windows": "libgdbm_s7.dll",
+        "//conditions:default": "libgdbm_s7.so"
+    }),
+    deps            = [":gdbm_s7"]
+)
+
+clibgen_runner(
+    name = "libgdbm_s7_runbin",
+    args = ["--script", "$(location libgdbm_clibgen.scm)"],
+    srcs = [":libgdbm_clibgen.scm"],
+    outs = [":libgdbm_s7.c"]
+)

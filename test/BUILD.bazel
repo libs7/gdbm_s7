@@ -1,0 +1,137 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+load("//:BUILD.bzl",
+     "BASE_SRCS", "BASE_DEPS", "BASE_INCLUDE_PATHS",
+     "BASE_COPTS", "BASE_DEFINES", "BASE_LINKOPTS",
+     "GOPT_VERSION",
+     "UNITY_VERSION",
+     "UTHASH_VERSION")
+
+# load("//test:BUILD.bzl",
+#      "TEST_SRCS", "TEST_DEPS", "TEST_INCLUDE_PATHS",
+#      "TEST_COPTS", "TEST_DEFINES", "TEST_LINKOPTS",
+#      "TIMEOUT")
+
+DEPS          = BASE_DEPS + [
+    "//src:gdbm_s7",
+    "@gopt//:gopt",
+    "@unity//src:unity",
+    "@uthash//src:uthash"
+]
+SRCS          = BASE_SRCS + ["common.c", "common.h"]
+INCLUDE_PATHS = BASE_INCLUDE_PATHS + [
+    "-Isrc",
+    "-Itest",
+    "-Iexternal/gopt~{}/src".format(GOPT_VERSION),
+    "-Iexternal/unity~{}/src".format(UNITY_VERSION),
+    "-Iexternal/uthash~{}/src".format(UTHASH_VERSION)
+]
+COPTS         = BASE_COPTS + INCLUDE_PATHS
+DEFINES       = BASE_DEFINES
+LINKOPTS      = BASE_LINKOPTS
+TIMEOUT = "short"
+################################################################
+exports_files(["common.c", "common.h"])
+
+test_suite(
+    name  = "test",
+    tests = [
+        ":gdbm_s7_test"
+    ]
+)
+
+# cc_binary(
+cc_test(
+    name = "gdbm_s7_test",
+    linkstatic = True,
+    srcs = SRCS + ["gdbm_test.c"],
+    # + select({
+    #     # "//config/clibs/link:loadtime?": [
+    #     # "//config/clibs/link:shared?": [
+    #     #     "//lib/libgdbm:gdbm_s7.c"  # , "//lib/libgdbm:libgdbm_s7.h",
+    #     # ],
+    #     "//conditions:default": []
+    # }),
+    local_defines = DEFINES,
+    deps = DEPS,
+    # + select({
+    #     "//config/clibs/link:archive?": [
+    #         "@gdbm//:libgdbm"
+    #         # "//lib/libgdbm:gdbm_s7"
+    #     ],
+    #     "//conditions:default": []
+    # }),
+    # data = select({
+    #     "//config/clibs/link:runtime?": [
+    #         "//lib/libgdbm:gdbm_s7"
+    #     ],
+    #     "//conditions:default": []
+    # }),
+    copts = COPTS,
+    # + [
+    #     "-I$(GENDIR)/lib/libgdbm",
+    #     "-I$(GENDIR)/external/libs7/lib/libgdbm",
+    # ],
+    linkopts = LINKOPTS,
+    timeout = TIMEOUT
+)
+
+# cc_test(
+#     name = "gdbm_link_archive",
+#     linkstatic = True,
+#     srcs = SRCS + ["gdbm_test.c"],
+#     local_defines = DEFINES,
+#     deps = DEPS + ["//lib/libgdbm:gdbm_s7"],
+#     copts = COPTS + [
+#         "-I$(GENDIR)/lib/libgdbm",
+#         "-I$(GENDIR)/external/libs7/lib/libgdbm",
+#     ],
+#     linkopts = LINKOPTS,
+#     timeout = TIMEOUT
+# )
+
+# cc_test(
+#     name = "gdbm_link_shared",
+#     linkstatic = True,
+#     srcs = SRCS + [
+#         "gdbm_test.c",
+#         # "//lib/libgdbm:gdbm_s7.c" ## , "//lib/libgdbm:libgdbm_s7.h",
+#     ],
+#     local_defines = DEFINES,
+#     deps = DEPS + ["//lib/libgdbm:gdbm_s7"],
+#     copts = COPTS + [
+#         "-I$(GENDIR)/lib/libgdbm",
+#         "-I$(GENDIR)/external/libs7/lib/libgdbm",
+#     ],
+#     linkopts = LINKOPTS,
+#     timeout = TIMEOUT
+# )
+
+# cc_test(
+#     name = "gdbm_link_runtime",
+#     linkstatic = True,
+#     srcs = SRCS + ["gdbm_test.c"],
+#     local_defines = DEFINES + ["CLIBS_LINK_RUNTIME"],
+#     deps = DEPS,
+#     data = ["//lib/libgdbm:gdbm_s7"],
+#     copts = COPTS + [
+#         "-I$(GENDIR)/lib/libgdbm",
+#         "-I$(GENDIR)/external/libs7/lib/libgdbm",
+#     ],
+#     linkopts = LINKOPTS,
+#     timeout = TIMEOUT
+# )
+
+cc_test(
+    name = "cwalk_s7_test",
+    linkstatic = True,
+    srcs = SRCS + ["cwalk_test.c"],
+    local_defines = DEFINES,
+    deps = DEPS + [
+        "//src:cwalk_s7"
+    ],
+    copts = COPTS,
+    linkopts = LINKOPTS,
+    timeout  = TIMEOUT,
+)
+
