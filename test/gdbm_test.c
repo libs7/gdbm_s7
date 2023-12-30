@@ -6,12 +6,13 @@
 #include <sys/types.h>
 
 #include "gopt.h"
-#include "log.h"
+#include "liblogc.h"
 #include "unity.h"
 #include "utarray.h"
 #include "utstring.h"
 
-#include "common.h"
+/* #include "common.h" */
+#include "s7plugin_test_config.h"
 
 #include "libs7.h"
 
@@ -77,6 +78,8 @@ void test_gdbm(void) {
 int main(int argc, char **argv, char **envp)
 {
     (void)envp;
+    s7 = s7_plugin_initialize("libm", argc, argv);
+
     /* for (char **env = envp; *env != 0; env++) */
     /*  { */
     /*    char *thisEnv = *env; */
@@ -96,25 +99,25 @@ int main(int argc, char **argv, char **envp)
     /* log_debug("ARGV[0]: %s", argv[0]); */
     /* log_debug("CWD: %s", getcwd(NULL, 0)); */
 
-    argc = gopt (argv, options);
-    (void)argc;
-    gopt_errors (argv[0], options);
+    /* argc = gopt (argv, options); */
+    /* (void)argc; */
+    /* gopt_errors (argv[0], options); */
 
-    set_options("gdbm", options);
+    /* set_options("gdbm", options); */
 
-    if (debug)
-        print_debug_env();
+    /* if (debug) */
+    /*     print_debug_env(); */
 
-    s7 = libs7_init();
+    /* s7 = libs7_init(); */
 
-    libs7_load_clib(s7, "gdbm");
+    libs7_load_plugin(s7, "gdbm");
 
     char *script_dir = "./test";
     s7_pointer newpath;
     newpath =  s7_add_to_load_path(s7, script_dir);
     (void)newpath;
 
-    log_debug("main BAZEL_CURRENT_REPOSITORY: %s", BAZEL_CURRENT_REPOSITORY);
+    log_debug("main LOCAL_REPO: %s", LOCAL_REPO);
     log_debug("TEST_SRCDIR: %s",
               getenv("TEST_SRCDIR"));
     log_debug("RUNFILES_DIR: %s",

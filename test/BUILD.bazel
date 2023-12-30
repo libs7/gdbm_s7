@@ -1,38 +1,24 @@
+load("@libs7//plugin:MACROS.bzl", "s7_plugin_test")
 load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//config/cc:CONFIG.bzl",
+     "BASE_COPTS", "BASE_LINKOPTS", "PROFILE")
 
-load("//:BUILD.bzl",
-     "BASE_SRCS", "BASE_DEPS", "BASE_INCLUDE_PATHS",
-     "BASE_COPTS", "BASE_DEFINES", "BASE_LINKOPTS",
-     "GOPT_VERSION",
-     "UNITY_VERSION",
-     "UTHASH_VERSION")
-
-# load("//test:BUILD.bzl",
-#      "TEST_SRCS", "TEST_DEPS", "TEST_INCLUDE_PATHS",
-#      "TEST_COPTS", "TEST_DEFINES", "TEST_LINKOPTS",
-#      "TIMEOUT")
-
-DEPS          = BASE_DEPS + [
-    "//src:gdbm_s7",
-    "@gopt//:gopt",
-    "@unity//src:unity",
-    "@uthash//src:uthash"
+DEPS          = [
+    "//lib:gdbm_s7",
+    "@gdbm//:libgdbm",
 ]
-SRCS          = BASE_SRCS + ["common.c", "common.h"]
-INCLUDE_PATHS = BASE_INCLUDE_PATHS + [
-    "-Isrc",
+SRCS          = []
+INCLUDE_PATHS = [
+    "-Ilib",
     "-Itest",
-    "-Iexternal/gopt~{}/src".format(GOPT_VERSION),
-    "-Iexternal/unity~{}/src".format(UNITY_VERSION),
-    "-Iexternal/uthash~{}/src".format(UTHASH_VERSION)
 ]
 COPTS         = BASE_COPTS + INCLUDE_PATHS
-DEFINES       = BASE_DEFINES
+DEFINES       = ["LOCAL_REPO=\\\"{}\\\"".format(
+    repository_name()[1:]
+)]
 LINKOPTS      = BASE_LINKOPTS
 TIMEOUT = "short"
 ################################################################
-exports_files(["common.c", "common.h"])
-
 test_suite(
     name  = "test",
     tests = [
@@ -40,10 +26,9 @@ test_suite(
     ]
 )
 
-# cc_binary(
-cc_test(
+s7_plugin_test(
     name = "gdbm_s7_test",
-    linkstatic = True,
+    # linkstatic = True,
     srcs = SRCS + ["gdbm_test.c"],
     # + select({
     #     # "//config/clibs/link:loadtime?": [
@@ -68,10 +53,6 @@ cc_test(
     #     "//conditions:default": []
     # }),
     copts = COPTS,
-    # + [
-    #     "-I$(GENDIR)/lib/libgdbm",
-    #     "-I$(GENDIR)/external/libs7/lib/libgdbm",
-    # ],
     linkopts = LINKOPTS,
     timeout = TIMEOUT
 )
@@ -121,17 +102,4 @@ cc_test(
 #     linkopts = LINKOPTS,
 #     timeout = TIMEOUT
 # )
-
-cc_test(
-    name = "cwalk_s7_test",
-    linkstatic = True,
-    srcs = SRCS + ["cwalk_test.c"],
-    local_defines = DEFINES,
-    deps = DEPS + [
-        "//src:cwalk_s7"
-    ],
-    copts = COPTS,
-    linkopts = LINKOPTS,
-    timeout  = TIMEOUT,
-)
 
