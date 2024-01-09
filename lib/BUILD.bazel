@@ -37,7 +37,10 @@ s7_plugin(
     ],
     deps            = DEPS,
     copts           = COPTS,
-    # linkopts      = LINKOPTS,
+    linkopts        = select({
+        "@platforms//os:macos": ["-lintl"], # for xcodebuild -version 14.3.1
+        "//conditions:default": []
+    })
     # local_defines = DEFINES
 )
 
